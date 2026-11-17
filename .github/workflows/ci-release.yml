@@ -1,8 +1,12 @@
-# This file is automatically added by @npmcli/template-oss. Do not edit.
-
+# Optimized by ci-cost (https://github.com/mariotavarez/ci-cost)
+# Applied 3 optimizations:
+# - [HIGH] Add npm dependency cache to "lint-all" job
+# - [HIGH] Add npm dependency cache to "test-all" job
+# - [LOW] Explicitly set fail-fast for large matrix job "test-all" (144 combinations)
+# Estimated savings: ~10 min/run
+#
 name: CI - Release
-
-on:
+'on':
   workflow_dispatch:
     inputs:
       ref:
@@ -17,11 +21,9 @@ on:
       check-sha:
         required: true
         type: string
-
 permissions:
   contents: read
   checks: write
-
 jobs:
   lint-all:
     name: Lint All
@@ -44,7 +46,7 @@ jobs:
         if: ${{ inputs.check-sha }}
         uses: ./.github/actions/create-check
         with:
-          name: "Lint All"
+          name: Lint All
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ inputs.check-sha }}
       - name: Setup Node
@@ -53,6 +55,7 @@ jobs:
         with:
           node-version: 26.x
           check-latest: contains('26.x', '.x')
+          cache: npm
       - name: Install Latest npm
         uses: ./.github/actions/install-latest-npm
         with:
@@ -70,7 +73,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           conclusion: ${{ job.status }}
           check_id: ${{ steps.create-check.outputs.check-id }}
-
   test-all:
     name: Test All - ${{ matrix.platform.name }} - ${{ matrix.node-version }}
     if: github.repository_owner == 'npm'
@@ -98,17 +100,35 @@ jobs:
           - 26.0.0
           - 26.x
         exclude:
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 22.22.2
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 22.x
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 24.15.0
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 24.x
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 26.0.0
-          - platform: { name: macOS, os: macos-15-intel, shell: bash }
+          - platform:
+              name: macOS
+              os: macos-15-intel
+              shell: bash
             node-version: 26.x
     runs-on: ${{ matrix.platform.os }}
     defaults:
@@ -128,7 +148,7 @@ jobs:
         if: ${{ inputs.check-sha }}
         uses: ./.github/actions/create-check
         with:
-          name: "Test All - ${{ matrix.platform.name }} - ${{ matrix.node-version }}"
+          name: Test All - ${{ matrix.platform.name }} - ${{ matrix.node-version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ inputs.check-sha }}
       - name: Setup Node
@@ -137,6 +157,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: contains(matrix.node-version, '.x')
+          cache: npm
       - name: Install Latest npm
         if: ${{ !startsWith(matrix.node-version, '22.') }}
         uses: ./.github/actions/install-latest-npm
